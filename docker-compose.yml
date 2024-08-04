@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  write-db:
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER_NAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DATABASE_NAME}
+    env_file:
+      - .env
+  read-db:
+    image: mongo
+    ports:
+      - "27017:27017"
+    env_file:
+      - .env
+    environment:
+      MONGODB_DATABASE_: ${MONGO_READ_DB}
+  event-store:
+    image: mongo
+    ports:
+      - "27018:27017"
+    env_file:
+      - .env
+    environment:
+        MONGODB_DATABASE_: ${MONGO_EVENT_STORE_DB}
+    command: mongod --replSet ${MONGO_EVENT_STORE_REPLICA} # adding replica to listen to change streams
+    volumes:
+      - ./scripts/event-sourcing-mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
